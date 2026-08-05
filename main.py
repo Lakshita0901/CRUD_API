@@ -1,16 +1,42 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import Optional
+from sqlmodel import SQLModel, Field, Session, create_engine, select
 
 app = FastAPI()
+# database setup 
+class Task(SQLModel,table=True):
+    id:Optional[int]=Field(default=None,primary_key=True)
+    title:str
+    done:bool=False
 
-INITIAL_TASKS = [
-    {"id": 1, "title": "Buy milk", "done": False},
-    {"id": 2, "title": "Walk the dog", "done": False},
-    {"id": 3, "title": "Finish assignment", "done": True},
-]
+engine=create_engine("sqlite:///tasks.db")
 
-tasks = [t.copy() for t in INITIAL_TASKS]
+def get_session():
+    with Session(engine)as session:
+        yield session
+
+
+@app.on_event("startup")
+def on_startup():
+    SQLModel.metadata.create_all(engine)
+    with Session(engine) as session:
+        existing = session.exec(select(Task)).first()
+        if not existing:
+            session.add_all([
+                Task(title="Buy milk", done=False),
+                Task(title="Walk the dog", done=False),
+                Task(title="Finish assignment", done=True),
+            ])
+            session.commit()
+
+# INITIAL_TASKS = [
+#     {"id": 1, "title": "Buy milk", "done": False},
+#     {"id": 2, "title": "Walk the dog", "done": False},
+#     {"id": 3, "title": "Finish assignment", "done": True},
+# ]
+
+# tasks = [t.copy() for t in INITIAL_TASKS]
 
 class TaskCreate(BaseModel):
     title: str

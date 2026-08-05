@@ -21,15 +21,20 @@ Interactive docs at `http://127.0.0.1:8000/docs`
 
 ## Endpoints
 
-| Method | Path            | Description             |
-|--------|-----------------|--------------------------|
-| GET    | /               | API info                |
-| GET    | /health         | Health check             |
-| GET    | /tasks          | List all tasks           |
-| GET    | /tasks/{id}     | Get a single task        |
-| POST   | /tasks          | Create a new task        |
-| PUT    | /tasks/{id}     | Update a task            |
-| DELETE | /tasks/{id}     | Delete a task             |
+| Method | Path                          | Description                          |
+|--------|-------------------------------|---------------------------------------|
+| GET    | /                             | API info                              |
+| GET    | /health                       | Health check                          |
+| GET    | /tasks                        | List all tasks                        |
+| GET    | /tasks?done=true\|false       | Filter tasks by completion status     |
+| GET    | /tasks?search=word            | Search tasks by title (case-insensitive) |
+| GET    | /tasks/{id}                   | Get a single task                     |
+| POST   | /tasks                        | Create a new task                     |
+| PUT    | /tasks/{id}                   | Update a task                         |
+| DELETE | /tasks/{id}                   | Delete a task                         |
+| GET    | /stats                        | Get task statistics (total/done/open) |
+| POST   | /reset                        | Reset tasks to the original 3 seed entries |
+
 
 ## Example request
 
@@ -51,3 +56,10 @@ content-type: application/json
 ## Swagger UI
 
 ![Swagger screenshot](Screenshot.png)
+
+## The mortality experiment
+
+When the server restarts, all tasks return to the original 3 seed entries —
+anything created, updated, or deleted during the session is lost. This happens
+because the task list lives only in the program's memory (RAM), not in a file
+or database, so nothing persists once the process stops.

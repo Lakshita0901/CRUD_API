@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+from typing import Optional
 
 app = FastAPI()
 
@@ -28,8 +29,10 @@ def health():
     return {"status": "ok"}
 
 @app.get("/tasks", summary="List all tasks")
-def get_tasks():
-    return tasks
+def get_tasks(done: Optional[bool] = None):
+    if done is None:
+        return tasks
+    return [t for t in tasks if t["done"] == done]
 
 @app.get("/tasks/{task_id}", summary="Get a single task by ID")
 def get_task(task_id: int):

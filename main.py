@@ -79,24 +79,28 @@ def create_task(task: TaskCreate, session: Session = Depends(get_session)):
     return new_task
 
 @app.put("/tasks/{task_id}", summary="Update a task")
-def update_task(task_id: int, update: TaskUpdate):
-    for task in tasks:
-        if task["id"] == task_id:
-            if not update.title.strip():
-                raise HTTPException(status_code=400, detail="Title cannot be empty")
-            task["title"] = update.title
-            task["done"] = update.done
-            return task
-    raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
+def update_task(task_id: int, update: TaskUpdate, session: Session = Depends(get_session)):
+    task = session.get(Task, task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
+    if not update.title.strip():
+        raise HTTPException(status_code=400, detail="Title cannot be empty")
+    task.title = update.title
+    task.done = update.done
+    session.add(task)
+    session.commit()
+    session.refresh(task)
+    return task
 
 @app.delete("/tasks/{task_id}", status_code=204, summary="Delete a task")
-def delete_task(task_id: int):
-    for task in tasks:
-        if task["id"] == task_id:
-            tasks.remove(task)
-            return
-    raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
+def delete_task(task_id: int, session: Session = Depends(get_session)):
+    task = session.get(Task, task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
+    session.delete(task)
+    session.commit()
 
+    
 @app.get("/stats", summary="Get task statistics")
 def get_stats():
     total = len(tasks)

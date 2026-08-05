@@ -29,10 +29,16 @@ def health():
     return {"status": "ok"}
 
 @app.get("/tasks", summary="List all tasks")
-def get_tasks(done: Optional[bool] = None):
-    if done is None:
-        return tasks
-    return [t for t in tasks if t["done"] == done]
+def get_tasks(done: Optional[bool] = None, search: Optional[str] = None):
+    result = tasks
+
+    if done is not None:
+        result = [t for t in result if t["done"] == done]
+
+    if search:
+        result = [t for t in result if search.lower() in t["title"].lower()]
+
+    return result
 
 @app.get("/tasks/{task_id}", summary="Get a single task by ID")
 def get_task(task_id: int):

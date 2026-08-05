@@ -69,12 +69,13 @@ def get_task(task_id: int, session: Session = Depends(get_session)):
     return task
 
 @app.post("/tasks", status_code=201, summary="Create a new task")
-def create_task(task: TaskCreate):
+def create_task(task: TaskCreate, session: Session = Depends(get_session)):
     if not task.title.strip():
         raise HTTPException(status_code=400, detail="Title cannot be empty")
-    new_id = max((t["id"] for t in tasks), default=0) + 1
-    new_task = {"id": new_id, "title": task.title, "done": False}
-    tasks.append(new_task)
+    new_task = Task(title=task.title, done=False)
+    session.add(new_task)
+    session.commit()
+    session.refresh(new_task)
     return new_task
 
 @app.put("/tasks/{task_id}", summary="Update a task")

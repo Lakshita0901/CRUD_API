@@ -4,11 +4,13 @@ from typing import Optional
 
 app = FastAPI()
 
-tasks = [
+INITIAL_TASKS = [
     {"id": 1, "title": "Buy milk", "done": False},
     {"id": 2, "title": "Walk the dog", "done": False},
     {"id": 3, "title": "Finish assignment", "done": True},
 ]
+
+tasks = [t.copy() for t in INITIAL_TASKS]
 
 class TaskCreate(BaseModel):
     title: str
@@ -84,3 +86,8 @@ def get_stats():
         "done": done_count,
         "open": total - done_count
     }
+@app.post("/reset", summary="Reset tasks to initial seed data")
+def reset_tasks():
+    global tasks
+    tasks = [t.copy() for t in INITIAL_TASKS]
+    return {"message": "Tasks reset to initial data", "tasks": tasks}

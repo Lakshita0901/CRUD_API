@@ -102,16 +102,34 @@ def delete_task(task_id: int, session: Session = Depends(get_session)):
 
     
 @app.get("/stats", summary="Get task statistics")
-def get_stats():
-    total = len(tasks)
-    done_count = sum(1 for t in tasks if t["done"])
+def get_stats(session: Session = Depends(get_session)):
+    all_tasks = session.exec(select(Task)).all()
+    total = len(all_tasks)
+    done_count = sum(1 for t in all_tasks if t.done)
     return {
         "total": total,
         "done": done_count,
         "open": total - done_count
     }
 @app.post("/reset", summary="Reset tasks to initial seed data")
-def reset_tasks():
-    global tasks
-    tasks = [t.copy() for t in INITIAL_TASKS]
-    return {"message": "Tasks reset to initial data", "tasks": tasks}
+def reset_tasks(session: Session = Depends(get_session)):
+    # delete every existing task
+    existing = session.exec(select(Task)).all()
+    for t in existing:
+        session.delete(t)
+    session.commit()
+
+    # re-insert the seed tasks
+    seed = [
+        Task(title="Buy milk", done=False),
+        Task(title="Walk the dog", done=False),
+        Task(title="Finish assignment", done=True),
+    ]
+    session.add_all(seed)
+    session.commit()
+
+    # refresh so ids come back populated
+    for t in seed:
+        session.refresh(t)
+
+    return {"message": "Tasks reset to initial data", "tasks": seed}

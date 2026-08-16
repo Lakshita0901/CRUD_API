@@ -3,6 +3,11 @@ from pydantic import BaseModel
 from typing import Optional
 from sqlmodel import SQLModel, Field, Session, create_engine, select
 
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
 app = FastAPI()
 # database setup 
 class Task(SQLModel,table=True):
@@ -10,7 +15,8 @@ class Task(SQLModel,table=True):
     title:str
     done:bool=False
 
-engine=create_engine("sqlite:///tasks.db")
+DATABASE_URL = os.getenv("DATABASE_URL")
+engine = create_engine(DATABASE_URL)
 
 def get_session():
     with Session(engine)as session:

@@ -1,4 +1,5 @@
-from fastapi import FastAPI, HTTPException,Depends
+from fastapi import FastAPI, HTTPException, Depends, Request
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from typing import Optional
 from sqlmodel import SQLModel, Field, Session, create_engine, select
@@ -6,9 +7,23 @@ from sqlmodel import SQLModel, Field, Session, create_engine, select
 import os
 from dotenv import load_dotenv
 
+from auth import router as auth_router
+from protected import router as protected_router
+
 load_dotenv()
 
 app = FastAPI()
+
+@app.exception_handler(HTTPException)
+async def custom_http_exception_handler(request: Request, exc: HTTPException):
+    if isinstance(exc.detail, dict):
+        return JSONResponse(status_code=exc.status_code, content=exc.detail)
+    return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
+
+# Include authentication and protected routers
+app.include_router(auth_router)
+app.include_router(protected_router)
+
 # database setup 
 class Task(SQLModel,table=True):
     id:Optional[int]=Field(default=None,primary_key=True)

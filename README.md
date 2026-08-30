@@ -215,7 +215,7 @@ Protected routes show a padlock icon
 A green "Authorize" button appears at the top of the page
 Pasting a raw access token there (no need to type "Bearer " manually) authorizes every subsequent "Try it out" call in the session
 Screenshot:
-![Swagger UI showing auth routes with padlock icons](./screenshot2.png)
+![Swagger UI showing auth routes with padlock icons](./Screenshot2.png)
 ---
 How auth was tested (Assignment 4)
 All checkpoints were verified manually through Swagger UI (`/docs`), in this order:
